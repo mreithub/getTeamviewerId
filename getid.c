@@ -4,7 +4,7 @@
 BOOL CALLBACK findWindowCallback(HWND hwnd, LPARAM lParam);
 BOOL CALLBACK findTextboxCallback(HWND hwnd, LPARAM lParam);
 
-static char *TV_WINDOW_TITLES[] = {
+const char *TV_WINDOW_TITLES[] = {
 	"TeamViewer QuickSupport",
 	"TeamViewer",
 	NULL
@@ -46,6 +46,7 @@ BOOL CALLBACK findWindowCallback(HWND hwnd, LPARAM lParam) {
 }
 
 BOOL CALLBACK findTextboxCallback(HWND hwnd, LPARAM lParam) {
+	const char *cmd = getenv("CMD");
 	char text[80];
 	char className[80];
 	BOOL rc = TRUE;
@@ -54,12 +55,26 @@ BOOL CALLBACK findTextboxCallback(HWND hwnd, LPARAM lParam) {
 	GetClassName(hwnd, className, sizeof(className));
 	SendMessage(hwnd, WM_GETTEXT, (WPARAM) sizeof(text), (LPARAM) text);
 
-	if (isTeamviewerId(text)) {
-		//fprintf(stderr, "Found ID: %s (hWnd=%d, class=%s)\n", text, hwnd, className);
-		if (lParam != 0) {
-			strncpy((char*) lParam, text, 20);
+	if (!strcmp(cmd, "pwd")) {
+		if (isTeamviewerPassword(text)) {
+			//fprintf(stderr, "Found password: %s (hWnd=%d, class=%s)\n", text, hwnd, className);
+			if (lParam != 0) {
+				strncpy((char*) lParam, text, 20);
+			}
+			rc = FALSE;
 		}
-		rc = FALSE;
+	}
+	else if (!strcmp(cmd, "texts")) {
+		printf("%s\n", text);
+	}
+	else {
+		if (isTeamviewerId(text)) {
+			//fprintf(stderr, "Found ID: %s (hWnd=%d, class=%s)\n", text, hwnd, className);
+			if (lParam != 0) {
+				strncpy((char*) lParam, text, 20);
+			}
+			rc = FALSE;
+		}
 	}
 
 	return rc;
@@ -74,6 +89,21 @@ BOOL isTeamviewerId(char *buff) {
 		rc = TRUE;
 		for (i = 0; i < sizeof(idParts)/sizeof(idParts[0]); i++) {
 			if (idParts[i] < 0 || idParts[i] > 999) rc = FALSE;
+		}
+	}
+
+	return rc;
+}
+
+BOOL isTeamviewerPassword(char *buff) {
+	char *endPtr = NULL;
+	BOOL rc = FALSE;
+
+	int pw = strtol(buff, &endPtr, 10);
+
+	if (*buff != '\0' && *endPtr == '\0') {
+		if (pw > 0 && pw < 1000000) { // allow numeric passwords of up to 6 digits
+			rc = TRUE;
 		}
 	}
 
