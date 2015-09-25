@@ -8,8 +8,30 @@
 #  2: couldn't get WINEPREFIX (maybe teamviewer's not running right now)
 #  3: couldn't find wine binary in the teamviewer directory
 
+usage() {
+	cat >&2 <<EOF
+USAGE: $0 [--id|--pwd|--texts]" >&1
+
+	--id (default): Print the ID
+	--pwd: Print the numeric session password
+	--texts: print all text fields' contents, line by line
+EOF
+}
+
+# TODO do proper argument handling
+if [ -z "$1" -o '--id' == "$1" ]; then
+	true #CMD={null}
+elif [ '--texts' == "$1" ]; then
+	CMD='texts'
+elif [ '--pwd' == "$1" ]; then
+	CMD='pwd'
+else
+	usage
+	exit 1
+fi
+
 # get $WINEPREFIX from the currently running teamviewer instance
-tvPid="$(pgrep TeamViewer.exe)"
+tvPid="$(pgrep TeamViewer.exe||true)"
 
 if [ -z "$tvPid" ]; then
 	echo "Error: TeamViewer not running!" >&2
@@ -38,4 +60,4 @@ getIdExe="$(dirname "$0")/teamviewer-getid.exe"
 # run the .exe in the right wineprefix (which we already exported above)
 
 "$winePath" "$getIdExe"
-exit $?
+exit "$?"
